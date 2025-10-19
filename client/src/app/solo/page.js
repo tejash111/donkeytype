@@ -1,4 +1,5 @@
 "use client"
+import { CustomNavbar } from '@/components/navbar';
 import RestartButton from '@/components/solo/restartButton';
 import Result from '@/components/solo/result';
 import Typing from '@/components/solo/typing';
@@ -83,21 +84,20 @@ const Solo = () => {
 
 
   return (
-    <div className='bg-neutral-800 min-h-screen flex items-center justify-center font-mono tracking-wider p-4 mx-auto'>
-      <div className="w-full max-w-5xl">
+    <div className='bg-neutral-800 min-h-screen flex  justify-center font-mono tracking-wider p-4 mx-auto '>
+      <div className="w-full max-w-7xl ">
+        <CustomNavbar />
         {state === "start" && cursor === 0 && (
-          <div className="bg-neutral-900 p-8 rounded-lg mb-6">
-            <h2 className="text-2xl font-bold text-yellow-500 mb-6 text-center">Game Settings</h2>
+          <div className="bg-neutral-900/40 max-w-3xl rounded-lg mb-10 flex justify-between mt-10 mx-auto">
 
-            {/* Mode Selection */}
-            <div className="mb-8">
-              <label className="block text-gray-300 mb-3 text-center text-lg">Mode</label>
-              <div className="flex gap-4 justify-center">
+
+            <div className="  ">
+              <div className="flex gap-5 justify-between">
                 <button
                   onClick={() => setMode('time')}
                   className={`px-8 py-4 rounded-lg font-bold transition ${mode === 'time'
-                      ? 'bg-yellow-500 text-neutral-900'
-                      : 'bg-neutral-800 text-gray-300 hover:bg-neutral-700'
+                    ? 'text-yellow-500 '
+                    : ' text-gray-300 hover:text-yellow-200'
                     }`}
                 >
                   Time Mode
@@ -105,32 +105,29 @@ const Solo = () => {
                 <button
                   onClick={() => setMode('words')}
                   className={`px-8 py-4 rounded-lg font-bold transition ${mode === 'words'
-                      ? 'bg-yellow-500 text-neutral-900'
-                      : 'bg-neutral-800 text-gray-300 hover:bg-neutral-700'
+                    ? 'text-yellow-500 '
+                    : ' text-gray-300 hover:text-yellow-200'
                     }`}
                 >
                   Words Mode
                 </button>
               </div>
-              <p className="text-gray-400 text-center mt-2 text-sm">
-                {mode === 'time'
-                  ? 'Type as many words as possible before time runs out'
-                  : 'Complete all words as fast as you can'}
-              </p>
             </div>
 
-            <div className="space-y-6">
+            <div className='h-8 my-auto bg-gray-300 w-1 rounded-2xl flex ' />
+
+            <div className="space-y-6 flex justify-between">
               {mode === 'time' && (
                 <div>
-                  <label className="block text-gray-300 mb-3 text-center">Time (seconds)</label>
+
                   <div className="flex gap-3 justify-center flex-wrap">
                     {[15, 30, 60, 120].map((time) => (
                       <button
                         key={time}
                         onClick={() => setCountdownSeconds(time)}
                         className={`px-6 py-3 rounded-lg font-bold transition ${countdownSeconds === time
-                            ? 'bg-yellow-500 text-neutral-900'
-                            : 'bg-neutral-800 text-gray-300 hover:bg-neutral-700'
+                          ? 'text-yellow-500'
+                          : 'text-gray-300 hover:text-yellow-200'
                           }`}
                       >
                         {time < 60 ? time : `${time / 60}m`}
@@ -142,7 +139,7 @@ const Solo = () => {
 
               {mode === 'words' && (
                 <div>
-                  <label className="block text-gray-300 mb-3 text-center">Number of Words</label>
+
                   <div className="flex gap-3 justify-center flex-wrap">
                     {[10, 25, 50, 100].map((count) => (
                       <button
@@ -152,8 +149,8 @@ const Solo = () => {
                           setWords(generateRandomWords(count));
                         }}
                         className={`px-6 py-3 rounded-lg font-bold transition ${wordCount === count
-                            ? 'bg-yellow-500 text-neutral-900'
-                            : 'bg-neutral-800 text-gray-300 hover:bg-neutral-700'
+                          ? 'text-yellow-500 '
+                          : ' text-gray-300 hover:text-yellow-200'
                           }`}
                       >
                         {count}
@@ -163,26 +160,23 @@ const Solo = () => {
                 </div>
               )}
             </div>
-            <p className="text-gray-400 text-center mt-6">Start typing to begin...</p>
           </div>
         )}
 
-        <div>
+        <div className='mt-20'>
           <div className='flex justify-between items-center mb-2'>
-            <div className='text-yellow-500/90 font-medium text-xl'>
+            <div className='text-yellow-500/90 font-medium text-3xl'>
               {mode === 'time' ? (
                 <>Time: {timeLeft}s</>
               ) : (
                 <>Words: {cursor} / {words.split(' ').length}</>
               )}
             </div>
-            <div className='text-gray-400'>
-              {mode === 'time' ? 'Type as many words as you can!' : `Complete ${wordCount} words`}
-            </div>
+
           </div>
-          <div className='relative max-w-5xl mt-3 select-none focus:outline-none'>
-            <p className='text-lg text-gray-100/80 select-none'>{words}</p>
-            <Typing words={words} className={"absolute inset-0 text-lg select-none font-mono"} userInput={typed} />
+          <div className='relative  mt-3 select-none focus:outline-none'>
+            <p className='text-4xl text-gray-200/40 font-b select-none '>{words}</p>
+            <Typing words={words} className={"absolute inset-0 text-4xl select-none font-mono font-normal"} userInput={typed} />
           </div>
 
           <RestartButton onRestart={restart} className="" />
