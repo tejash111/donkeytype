@@ -1,6 +1,6 @@
 const { useState, useRef, useEffect } = require("react")
 
-const keyboardCodeAllowed = (code) =>{
+const keyboardCodeAllowed = (code) => {
     return (
         code.startsWith("Key") ||
         code.startsWith("Digit") ||
@@ -9,10 +9,12 @@ const keyboardCodeAllowed = (code) =>{
     );
 }
 
-const useTyping = (enabled) => {
-    const [cursor,setCursor]=useState(0)
-    const [typed,setTyped]=useState("")
+const useTyping = (enabled, words = "") => {
+    const [cursor, setCursor] = useState(0)
+    const [typed, setTyped] = useState("")
     const totalTyped = useRef(0)
+    const totalKeystrokes = useRef(0) // All keystrokes made (not counting backspace)
+    const totalErrors = useRef(0) // All errors made (even if corrected)
 
     const clearTyped = () => {
         setTyped("");
@@ -20,32 +22,52 @@ const useTyping = (enabled) => {
     }
 
     const resetTotalTyped = () => {
-        totalTyped.current=0;
+        totalTyped.current = 0;
+        totalKeystrokes.current = 0;
+        totalErrors.current = 0;
     }
 
-    
-    useEffect(()=>{
+
+    useEffect(() => {
         const keydownHandler = (event) => {
             const { key, code } = event;
-            
-            if (!enabled || !keyboardCodeAllowed(code)){
+
+            if (!enabled || !keyboardCodeAllowed(code)) {
                 return;
             }
 
-            switch(key){
+            switch (key) {
                 case "Backspace":
-                    setTyped((prev)=> prev.slice(0,-1));
+                    setTyped((prev) => prev.slice(0, -1));
                     setCursor((prev) => Math.max(0, prev - 1));
                     totalTyped.current = Math.max(0, totalTyped.current - 1);
                     break;
                 case " ":
-                    setTyped((prev)=> prev.concat(" "));
+                    setTyped((prev) => {
+                        const newTyped = prev.concat(" ");
+                        // Check if this keystroke is correct
+                        const expectedChar = words[prev.length];
+                        totalKeystrokes.current += 1;
+                        if (expectedChar !== " ") {
+                            totalErrors.current += 1;
+                        }
+                        return newTyped;
+                    });
                     setCursor((prev) => prev + 1);
                     totalTyped.current += 1;
                     break;
                 default:
                     if (key.length === 1) { // Only single characters
-                        setTyped((prev)=> prev.concat(key));
+                        setTyped((prev) => {
+                            const newTyped = prev.concat(key);
+                            // Check if this keystroke is correct
+                            const expectedChar = words[prev.length];
+                            totalKeystrokes.current += 1;
+                            if (expectedChar !== key) {
+                                totalErrors.current += 1;
+                            }
+                            return newTyped;
+                        });
                         setCursor((prev) => prev + 1);
                         totalTyped.current += 1;
                     }
@@ -53,17 +75,19 @@ const useTyping = (enabled) => {
         };
 
         window.addEventListener("keydown", keydownHandler);
-        return ()=>{
+        return () => {
             window.removeEventListener("keydown", keydownHandler)
         }
-    }, [enabled])
+    }, [enabled, words])
 
-    return{
+    return {
         typed,
         cursor,
         clearTyped,
         resetTotalTyped,
-        totalTyped : totalTyped.current
+        totalTyped: totalTyped.current,
+        totalKeystrokes: totalKeystrokes.current,
+        totalErrors: totalErrors.current
     }
 }
 

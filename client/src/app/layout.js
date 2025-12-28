@@ -14,14 +14,14 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "DonkeyType - Multiplayer Typing",
-  description: "Real-time multiplayer typing game",
+  description: "RePal-time multiplayer typing game",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased `}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}
       >
         <Providers>
           {children}

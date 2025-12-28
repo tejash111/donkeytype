@@ -5,15 +5,16 @@ import Result from '@/components/solo/result';
 import Typing from '@/components/solo/typing';
 import useCountdownTimer from '@/hooks/countdownTimer';
 import useTyping from '@/hooks/usetyping';
-import { calculateAccuracyPercentage, calculateWordsPerMinute, countErrors } from '@/services/helper';
+import { calculateAccuracyPercentage, calculateWordsPerMinute, calculateRawWpm, countErrors } from '@/services/helper';
 import { faker } from '@faker-js/faker'
 import React, { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from "motion/react"
 
 function generateRandomWords(count = 20) {
   return Array.from({ length: count }, () => faker.word.sample()).join(' ');
 }
 const Solo = () => {
-  const [mode, setMode] = useState('time'); // 'time' or 'words'
+  const [mode, setMode] = useState('time');
   const [wordCount, setWordCount] = useState(25);
   const [countdownSeconds, setCountdownSeconds] = useState(30);
   const [words, setWords] = useState(() => generateRandomWords(wordCount));
@@ -25,7 +26,7 @@ const Solo = () => {
     setWords(generateRandomWords(wordCount));
   }
 
-  const { typed, cursor, clearTyped, resetTotalTyped, totalTyped } = useTyping(state !== "finish")
+  const { typed, cursor, clearTyped, resetTotalTyped, totalTyped, totalKeystrokes, totalErrors } = useTyping(state !== "finish", words)
 
   const [errors, setErrors] = useState(0)
   const [startTime, setStartTime] = useState(null);
@@ -82,90 +83,109 @@ const Solo = () => {
   }, [wordsFinished, state, mode, typed, words])
 
 
+  if (state === "finish") {
+    return (
+      <div className='bg-black min-h-screen flex justify-center items-center font-mono tracking-wider p-4 mx-auto'>
+        <div className="w-full max-w-2xl mx-auto">
+          <Result
+            state={state}
+            className={"mt-10"}
+            errors={totalErrors}
+            wpm={mode === 'time'
+              ? calculateWordsPerMinute(totalTyped, countdownSeconds - timeLeft, totalErrors)
+              : calculateWordsPerMinute(totalTyped, startTime ? (Date.now() - startTime) / 1000 : 1, totalErrors)
+            }
+            rawWpm={mode === 'time'
+              ? calculateRawWpm(totalTyped, countdownSeconds - timeLeft)
+              : calculateRawWpm(totalTyped, startTime ? (Date.now() - startTime) / 1000 : 1)
+            }
+            total={totalKeystrokes}
+            time={mode === 'time' ? countdownSeconds - timeLeft : (startTime ? (Date.now() - startTime) / 1000 : 0)}
+          />
+          <RestartButton onRestart={restart} className="mt-8" />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className='bg-neutral-800 min-h-screen flex  justify-center font-mono tracking-wider p-4 mx-auto '>
+    <div className='bg-black min-h-screen flex  justify-center font-mono tracking-wider p-4 mx-auto '>
       <div className="w-full max-w-7xl ">
         <CustomNavbar />
-        {state === "start" && cursor === 0 && (
-          <div className="bg-neutral-900/40 max-w-3xl rounded-lg mb-10 flex justify-between mt-10 mx-auto">
-
-
-            <div className="  ">
-              <div className="flex gap-5 justify-between">
+        <AnimatePresence>
+          {state === "start" && cursor === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="bg-neutral-900/30 rounded-xl px-6 py-3 flex items-center justify-center gap-6 mt-10 mx-auto w-fit"
+            >
+              {/* Mode Selection */}
+              <div className="flex items-center gap-1">
                 <button
                   onClick={() => setMode('time')}
-                  className={`px-8 py-4 rounded-lg font-bold transition ${mode === 'time'
-                    ? 'text-yellow-500 '
-                    : ' text-gray-300 hover:text-yellow-200'
+                  className={`px-4 py-2 text-sm rounded-md transition-all duration-200 ${mode === 'time'
+                    ? 'text-green-500 bg-green-500/10'
+                    : 'text-gray-500 hover:text-gray-300'
                     }`}
                 >
-                  Time Mode
+                  time
                 </button>
                 <button
                   onClick={() => setMode('words')}
-                  className={`px-8 py-4 rounded-lg font-bold transition ${mode === 'words'
-                    ? 'text-yellow-500 '
-                    : ' text-gray-300 hover:text-yellow-200'
+                  className={`px-4 py-2 text-sm rounded-md transition-all duration-200 ${mode === 'words'
+                    ? 'text-green-500 bg-green-500/10'
+                    : 'text-gray-500 hover:text-gray-300'
                     }`}
                 >
-                  Words Mode
+                  words
                 </button>
               </div>
-            </div>
 
-            <div className='h-8 my-auto bg-gray-300 w-1 rounded-2xl flex ' />
+              {/* Separator */}
+              <div className='h-5 w-[2px] bg-gray-600/50 rounded-full' />
 
-            <div className="space-y-6 flex justify-between">
-              {mode === 'time' && (
-                <div>
-
-                  <div className="flex gap-3 justify-center flex-wrap">
-                    {[15, 30, 60, 120].map((time) => (
-                      <button
-                        key={time}
-                        onClick={() => setCountdownSeconds(time)}
-                        className={`px-6 py-3 rounded-lg font-bold transition ${countdownSeconds === time
-                          ? 'text-yellow-500'
-                          : 'text-gray-300 hover:text-yellow-200'
-                          }`}
-                      >
-                        {time < 60 ? time : `${time / 60}m`}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {mode === 'words' && (
-                <div>
-
-                  <div className="flex gap-3 justify-center flex-wrap">
-                    {[10, 25, 50, 100].map((count) => (
-                      <button
-                        key={count}
-                        onClick={() => {
-                          setWordCount(count);
-                          setWords(generateRandomWords(count));
-                        }}
-                        className={`px-6 py-3 rounded-lg font-bold transition ${wordCount === count
-                          ? 'text-yellow-500 '
-                          : ' text-gray-300 hover:text-yellow-200'
-                          }`}
-                      >
-                        {count}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+              {/* Duration/Count Selection */}
+              <div className="flex items-center gap-1">
+                {mode === 'time' ? (
+                  [15, 30, 60, 120].map((time) => (
+                    <button
+                      key={time}
+                      onClick={() => setCountdownSeconds(time)}
+                      className={`px-4 py-2 text-sm rounded-md transition-all duration-200 ${countdownSeconds === time
+                        ? 'text-green-500 bg-green-500/10'
+                        : 'text-gray-500 hover:text-gray-300'
+                        }`}
+                    >
+                      {time < 60 ? time : `${time / 60}m`}
+                    </button>
+                  ))
+                ) : (
+                  [10, 25, 50, 100].map((count) => (
+                    <button
+                      key={count}
+                      onClick={() => {
+                        setWordCount(count);
+                        setWords(generateRandomWords(count));
+                      }}
+                      className={`px-4 py-2 text-sm rounded-md transition-all duration-200 ${wordCount === count
+                        ? 'text-green-500 bg-green-500/10'
+                        : 'text-gray-500 hover:text-gray-300'
+                        }`}
+                    >
+                      {count}
+                    </button>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className='mt-20'>
           <div className='flex justify-between items-center mb-2'>
-            <div className='text-yellow-500/90 font-medium text-3xl'>
+            <div className='text-green-700/90 font-medium text-3xl'>
               {mode === 'time' ? (
                 <>Time: {timeLeft}s</>
               ) : (
@@ -174,23 +194,13 @@ const Solo = () => {
             </div>
 
           </div>
-          <div className='relative  mt-3 select-none focus:outline-none'>
-            <p className='text-4xl text-gray-200/40 font-b select-none '>{words}</p>
-            <Typing words={words} className={"absolute inset-0 text-4xl select-none font-mono font-normal"} userInput={typed} />
+          <div className='mt-3 select-none focus:outline-none'>
+            <Typing words={words} className={"text-4xl select-none font-mono font-normal tracking-wider leading-relaxed"} userInput={typed} />
           </div>
 
           <RestartButton onRestart={restart} className="" />
 
-          <Result
-            state={state}
-            className={"mt-10"}
-            errors={errors}
-            wpm={mode === 'time'
-              ? calculateWordsPerMinute(totalTyped, countdownSeconds - timeLeft)
-              : calculateWordsPerMinute(totalTyped, startTime ? (Date.now() - startTime) / 1000 : 1)
-            }
-            total={totalTyped}
-          />
+
         </div>
       </div>
     </div>

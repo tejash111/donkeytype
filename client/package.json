@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@radix-ui/react-select": "^2.2.6",
     "@tabler/icons-react": "^3.35.0",
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",
@@ -20,6 +21,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-icons": "^5.5.0",
+    "recharts": "^2.15.4",
     "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.3.1"
   },

@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 import {
     Navbar,
     NavBody,
@@ -11,6 +12,7 @@ import {
     MobileNavMenu,
 } from "./ui/resizable-navbar";
 import { useState } from "react";
+import { motion } from "motion/react";
 
 export function CustomNavbar() {
     const navItems = [
@@ -22,22 +24,27 @@ export function CustomNavbar() {
             name: "multiplayer",
             link: "/multiplayer",
         },
-       
+
     ];
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const params = useParams()
+
+
 
     return (
-        <div className="relative w-full mb-5">
+        <motion.div
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-full mb-5"
+        >
             <Navbar>
                 {/* Desktop Navigation */}
                 <NavBody>
                     <NavbarLogo />
-                    <NavItems items={navItems} />
-                    <div className="flex items-center gap-4">
-                        {/* <NavbarButton variant="secondary">Login</NavbarButton> */}
-                        <NavbarButton variant="primary">Login</NavbarButton>
-                    </div>
+                    <NavItems items={navItems} params={params} />
+
                 </NavBody>
 
                 {/* Mobile Navigation */}
@@ -76,9 +83,9 @@ export function CustomNavbar() {
                     </MobileNavMenu>
                 </MobileNav>
             </Navbar>
-            
+
             {/* Navbar */}
-        </div>
+        </motion.div>
     );
 }
 
