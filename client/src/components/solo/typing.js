@@ -10,6 +10,7 @@ const Typing = ({
 }) => {
   const characters = words.split("");
   const typedLength = userInput.length;
+  const hasStartedTyping = typedLength > 0;
 
   return (
     <div className={className}>
@@ -29,7 +30,7 @@ const Typing = ({
           // This is where the caret should be
           return (
             <span key={`char_${index}`} className="relative">
-              <Caret />
+              <Caret isTyping={hasStartedTyping} />
               <span className="text-gray-500/50">{char}</span>
             </span>
           );
@@ -46,17 +47,21 @@ const Typing = ({
   );
 };
 
-const Caret = () => {
+const Caret = ({ isTyping }) => {
   return (
     <motion.span
       initial={{ opacity: 1 }}
-      animate={{ opacity: [1, 0] }}
-      transition={{
-        duration: 0.5,
-        repeat: Infinity,
-        repeatType: "reverse",
-        ease: "easeInOut",
-      }}
+      animate={isTyping ? { opacity: 1 } : { opacity: [1, 0] }}
+      transition={
+        isTyping
+          ? {}
+          : {
+            duration: 0.5,
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "easeInOut",
+          }
+      }
       className="absolute left-0 top-0 w-[2px] h-[1.15em] bg-green-500 rounded-full"
     />
   );

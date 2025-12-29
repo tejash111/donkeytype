@@ -17,13 +17,15 @@ const Solo = () => {
   const [mode, setMode] = useState('time');
   const [wordCount, setWordCount] = useState(25);
   const [countdownSeconds, setCountdownSeconds] = useState(30);
-  const [words, setWords] = useState(() => generateRandomWords(wordCount));
+  const [words, setWords] = useState(() => generateRandomWords(30));
   const [state, setState] = useState("start")
+  const [wordsTypedCount, setWordsTypedCount] = useState(0); // Track total words typed in words mode
+  const [allWordsTyped, setAllWordsTyped] = useState([]); // Track all words typed for word count calculation
 
   const { timeLeft, startCountdown, resetCountdown } = useCountdownTimer(countdownSeconds)
 
   const updateWords = () => {
-    setWords(generateRandomWords(wordCount));
+    setWords(generateRandomWords(30));
   }
 
   const { typed, cursor, clearTyped, resetTotalTyped, totalTyped, totalKeystrokes, totalErrors } = useTyping(state !== "finish", words)
@@ -40,6 +42,8 @@ const Solo = () => {
     setState("start");
     setErrors(0);
     setStartTime(null);
+    setWordsTypedCount(0);
+    setAllWordsTyped([]);
     updateWords();
     clearTyped();
   }
@@ -68,10 +72,25 @@ const Solo = () => {
       console.log("words are finished");
 
       if (mode === 'words') {
-        // In words mode, finish immediately when all words are typed
-        const currentErrors = countErrors(typed, words);
-        setErrors(currentErrors);
-        setState("finish");
+        // Get completed words from current typing session
+        const completedWords = typed.trim().split(/\s+/).filter(w => w.length > 0);
+        const updatedAllWords = [...allWordsTyped, ...completedWords];
+        setAllWordsTyped(updatedAllWords);
+        const newWordsTypedCount = updatedAllWords.length;
+        setWordsTypedCount(newWordsTypedCount);
+
+        // Check if we've reached the target word count
+        if (newWordsTypedCount >= wordCount) {
+          const currentErrors = countErrors(typed, words);
+          setErrors(currentErrors);
+          setState("finish");
+        } else {
+          // Generate new words and continue
+          const currentErrors = countErrors(typed, words);
+          setErrors((prev) => prev + currentErrors);
+          updateWords();
+          clearTyped();
+        }
       } else if (mode === 'time') {
         // In time mode, generate new words and keep going
         const currentErrors = countErrors(typed, words);
@@ -80,7 +99,7 @@ const Solo = () => {
         clearTyped();
       }
     }
-  }, [wordsFinished, state, mode, typed, words])
+  }, [wordsFinished, state, mode, typed, words, wordsTypedCount, wordCount, allWordsTyped, clearTyped, updateWords])
 
 
   if (state === "finish") {
@@ -167,7 +186,9 @@ const Solo = () => {
                       key={count}
                       onClick={() => {
                         setWordCount(count);
-                        setWords(generateRandomWords(count));
+                        setWords(generateRandomWords(30));
+                        setWordsTypedCount(0);
+                        setAllWordsTyped([]);
                       }}
                       className={`px-4 py-2 text-sm rounded-md transition-all duration-200 ${wordCount === count
                         ? 'text-green-500 bg-green-500/10'
@@ -184,12 +205,12 @@ const Solo = () => {
         </AnimatePresence>
 
         <div className='mt-20'>
-          <div className='flex justify-between items-center mb-2'>
+          <div className='flex justify-between items-center mb-2 min-h-[44px]'>
             <div className='text-green-700/90 font-medium text-3xl'>
               {mode === 'time' ? (
                 <>Time: {timeLeft}s</>
               ) : (
-                <>Words: {cursor} / {words.split(' ').length}</>
+                <>Words: {wordsTypedCount + typed.trim().split(/\s+/).filter(w => w.length > 0).length} / {wordCount}</>
               )}
             </div>
 

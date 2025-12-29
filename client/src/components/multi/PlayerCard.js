@@ -1,6 +1,7 @@
 "use client"
 
 import React from 'react'
+import Image from 'next/image'
 
 const PlayerCard = ({ player, index, myId, roomCreator, gameState }) => {
     const getRankColor = (rank) => {

@@ -1,4 +1,5 @@
-const { useState, useRef, useEffect } = require("react")
+const React = require("react")
+const { useState, useRef, useEffect } = React
 
 const keyboardCodeAllowed = (code) => {
     return (
@@ -16,16 +17,16 @@ const useTyping = (enabled, words = "") => {
     const totalKeystrokes = useRef(0) // All keystrokes made (not counting backspace)
     const totalErrors = useRef(0) // All errors made (even if corrected)
 
-    const clearTyped = () => {
+    const clearTyped = React.useCallback(() => {
         setTyped("");
         setCursor(0);
-    }
+    }, [])
 
-    const resetTotalTyped = () => {
+    const resetTotalTyped = React.useCallback(() => {
         totalTyped.current = 0;
         totalKeystrokes.current = 0;
         totalErrors.current = 0;
-    }
+    }, [])
 
 
     useEffect(() => {

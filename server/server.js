@@ -1,13 +1,16 @@
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: process.env.CORS_ORIGIN || "*",
     methods: ["GET", "POST"],
   },
 });
@@ -45,6 +48,9 @@ io.on("connection", (socket) => {
         words: null,
         startTime: null,
         creator: socket.id,
+        timeLimit: 60,
+        wordCount: 30,
+        gameMode: 'time',
       });
     }
 
@@ -70,11 +76,17 @@ io.on("connection", (socket) => {
       gameState: room.gameState,
       words: room.words,
       creator: room.creator, // Send creator ID to client
+      timeLimit: room.timeLimit,
+      wordCount: room.wordCount,
+      gameMode: room.gameMode,
     });
 
     socket.to(roomId).emit("player-joined", {
       player: room.players.get(socket.id),
       players: Array.from(room.players.values()),
+      timeLimit: room.timeLimit,
+      wordCount: room.wordCount,
+      gameMode: room.gameMode,
     });
   });
 
@@ -114,6 +126,9 @@ io.on("connection", (socket) => {
       words,
       startTime: room.startTime,
       players: Array.from(room.players.values()),
+      timeLimit: room.timeLimit,
+      wordCount: room.wordCount,
+      gameMode: room.gameMode,
     });
   });
 
@@ -185,6 +200,33 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("update-settings", (data) => {
+    if (!data || !data.roomId) {
+      return;
+    }
+
+    const { roomId, timeLimit, wordCount, gameMode } = data;
+    const room = rooms.get(roomId);
+    if (!room) return;
+
+    // Only creator can update settings
+    if (socket.id !== room.creator) {
+      return;
+    }
+
+    // Update room settings
+    if (timeLimit !== undefined) room.timeLimit = timeLimit;
+    if (wordCount !== undefined) room.wordCount = wordCount;
+    if (gameMode !== undefined) room.gameMode = gameMode;
+
+    // Broadcast to all players in room
+    io.to(roomId).emit("settings-updated", {
+      timeLimit: room.timeLimit,
+      wordCount: room.wordCount,
+      gameMode: room.gameMode,
+    });
+  });
+
   // Chat message handler
   socket.on("chat-message", (data) => {
     if (!data || !data.roomId || !data.message) {
@@ -250,5 +292,5 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => console.log(`✅ Socket.IO server running on port ${PORT}`));

@@ -1,14 +1,12 @@
 
-import { CustomNavbar } from '@/components/navbar'
 import React from 'react'
+import Solo from './(solo)/page'
 
 const Home = () => {
   return (
-    <div className='bg-black'>
-      <div>
- <CustomNavbar/>
-      </div>
-    </div>
+    <>
+    <Solo/>
+    </>
   )
 }
 

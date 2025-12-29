@@ -40,20 +40,109 @@ const MultiplayerPage = () => {
     const [gameMode, setGameMode] = useState('time'); // 'time' or 'words'
     const [wpmHistory, setWpmHistory] = useState({}); // { [playerId]: [{ time: '1s', wpm: 10, raw: 10 }] }
 
+    // Set myId whenever socket changes
+    useEffect(() => {
+        if (socket?.id) {
+            setMyId(socket.id);
+            console.log("My socket ID set to:", socket.id);
+        }
+    }, [socket?.id]);
+
     const { typed, cursor, clearTyped, resetTotalTyped, totalTyped, totalErrors } = useTyping(gameState === 'playing', words);
 
     useEffect(() => {
         if (!socket) return;
-        // ... (existing code for socket handlers) ... 
 
-        socket.on('start-game', ({ words, players, startTime: serverStartTime }) => {
-            // ...
+        socket.on('room-state', ({ roomId, players, gameState, words, creator, timeLimit, wordCount, gameMode }) => {
+            console.log("Room State Received:", { roomId, players, gameState, creator });
+            console.log("My socket ID:", socket.id);
+            console.log("Am I creator?", socket.id === creator);
+            setPlayers(players);
+            setGameState(gameState);
+            if (words) setWords(words);
+            setRoomCreator(creator);
+            if (timeLimit !== undefined) setTimeLimit(timeLimit);
+            if (wordCount !== undefined) setWordCount(wordCount);
+            if (gameMode !== undefined) setGameMode(gameMode);
+            setInRoom(true);
         });
 
-        // ... (rest of socket handlers)
+        socket.on('player-joined', ({ players, timeLimit, wordCount, gameMode }) => {
+            setPlayers(players);
+            if (timeLimit !== undefined) setTimeLimit(timeLimit);
+            if (wordCount !== undefined) setWordCount(wordCount);
+            if (gameMode !== undefined) setGameMode(gameMode);
+        });
+
+        socket.on('player-left', ({ players }) => {
+            setPlayers(players);
+        });
+
+        socket.on('game-started', ({ words, players, startTime: serverStartTime, timeLimit: serverTimeLimit, wordCount: serverWordCount, gameMode: serverGameMode }) => {
+            setWords(words);
+            setGameState('playing');
+            setPlayers(players);
+            setStartTime(serverStartTime);
+            if (serverTimeLimit !== undefined) setTimeLimit(serverTimeLimit);
+            if (serverWordCount !== undefined) setWordCount(serverWordCount);
+            if (serverGameMode !== undefined) setGameMode(serverGameMode);
+            setTimeLeft(serverTimeLimit !== undefined ? serverTimeLimit : timeLimit);
+            setWpmHistory({}); // Reset history
+            clearTyped();
+            resetTotalTyped();
+        });
+
+        socket.on('progress-update', ({ players }) => {
+            setPlayers(players);
+        });
+
+        socket.on('game-finished', ({ players }) => {
+            setGameState('finished');
+            setPlayers(players);
+        });
+
+        // Chat message listener
+        socket.on('new-chat-message', (message) => {
+            setChatMessages((prev) => [...prev, message]);
+        });
+
+        socket.on('settings-updated', ({ timeLimit, wordCount, gameMode }) => {
+            if (timeLimit !== undefined) setTimeLimit(timeLimit);
+            if (wordCount !== undefined) setWordCount(wordCount);
+            if (gameMode !== undefined) setGameMode(gameMode);
+        });
+
+        return () => {
+            socket.off('room-state');
+            socket.off('player-joined');
+            socket.off('player-left');
+            socket.off('game-started');
+            socket.off('progress-update');
+            socket.off('game-finished');
+            socket.off('new-chat-message');
+            socket.off('settings-updated');
+        };
     }, [socket, clearTyped, resetTotalTyped]);
 
-    // ... (timer useEffect) ...
+    // Timer countdown
+    useEffect(() => {
+        if (gameState !== 'playing' || timeLeft === null || !socket) return;
+
+        if (timeLeft <= 0) {
+            // Time's up - emit event to server
+            socket.emit('time-up', { roomId });
+            return;
+        }
+
+        const timer = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev === null || prev <= 0) return 0;
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [gameState, timeLeft, socket, roomId, timeLimit]);
 
     useEffect(() => {
         if (!socket || gameState !== 'playing' || !inRoom || !startTime) return;
@@ -81,7 +170,7 @@ const MultiplayerPage = () => {
             clearTyped();
             resetTotalTyped();
         }
-    }, [cursor, typed, socket, gameState, inRoom, roomId, words, totalTyped, startTime, wordCount, clearTyped, resetTotalTyped]);
+    }, [cursor, typed, socket, gameState, inRoom, roomId, words, totalTyped, startTime, wordCount, clearTyped, resetTotalTyped, totalErrors]);
 
     // Sample WPM history every second
     useEffect(() => {
@@ -289,7 +378,7 @@ const MultiplayerPage = () => {
                 <div className="flex justify-between items-start mb-8">
                     <div>
                         <h1 className="text-2xl text-gray-200 font-medium mb-2">
-                            {username}'s Room
+                            {players.find(p => p.id === roomCreator)?.username || username}&apos;s Room
                             <span className="text-gray-500 mx-2">|</span>
                             <span className="text-green-500">
                                 {gameMode === 'time'
@@ -341,11 +430,26 @@ const MultiplayerPage = () => {
                         <div className="bg-[#070606] rounded-xl px-6 py-3 inline-flex">
                             <GameSettings
                                 timeLimit={timeLimit}
-                                setTimeLimit={setTimeLimit}
+                                setTimeLimit={(value) => {
+                                    setTimeLimit(value);
+                                    if (socket && myId === roomCreator) {
+                                        socket.emit('update-settings', { roomId, timeLimit: value });
+                                    }
+                                }}
                                 wordCount={wordCount}
-                                setWordCount={setWordCount}
+                                setWordCount={(value) => {
+                                    setWordCount(value);
+                                    if (socket && myId === roomCreator) {
+                                        socket.emit('update-settings', { roomId, wordCount: value });
+                                    }
+                                }}
                                 gameMode={gameMode}
-                                setGameMode={setGameMode}
+                                setGameMode={(value) => {
+                                    setGameMode(value);
+                                    if (socket && myId === roomCreator) {
+                                        socket.emit('update-settings', { roomId, gameMode: value });
+                                    }
+                                }}
                                 isCreator={myId === roomCreator}
                             />
                         </div>

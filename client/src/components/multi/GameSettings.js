@@ -19,8 +19,8 @@ const GameSettings = ({
                     onClick={() => setGameMode('time')}
                     disabled={!isCreator}
                     className={`px-4 py-1.5 text-sm rounded-lg transition-all ${gameMode === 'time'
-                            ? 'bg-green-500/20 text-green-500'
-                            : 'text-gray-500 hover:text-gray-300'
+                        ? 'bg-green-500/20 text-green-500'
+                        : 'text-gray-500 hover:text-gray-300'
                         } ${!isCreator ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     time
@@ -29,8 +29,8 @@ const GameSettings = ({
                     onClick={() => setGameMode('words')}
                     disabled={!isCreator}
                     className={`px-4 py-1.5 text-sm rounded-lg transition-all ${gameMode === 'words'
-                            ? 'bg-green-500/20 text-green-500'
-                            : 'text-gray-500 hover:text-gray-300'
+                        ? 'bg-green-500/20 text-green-500'
+                        : 'text-gray-500 hover:text-gray-300'
                         } ${!isCreator ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     words
@@ -43,17 +43,17 @@ const GameSettings = ({
             <div className="flex items-center gap-1">
                 {gameMode === 'time' ? (
                     // Time options
-                    [15, 30, 60, 120].map((time) => (
+                    [15, 30, 60, 120, 300, 900].map((time) => (
                         <button
                             key={time}
                             onClick={() => setTimeLimit(time)}
                             disabled={!isCreator}
                             className={`px-3 py-1.5 text-sm rounded-lg transition-all ${timeLimit === time
-                                    ? 'bg-green-500/20 text-green-500'
-                                    : 'text-gray-500 hover:text-gray-300'
+                                ? 'bg-green-500/20 text-green-500'
+                                : 'text-gray-500 hover:text-gray-300'
                                 } ${!isCreator ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                            {time < 60 ? time : `${time / 60}m`}
+                            {time < 60 ? `${time}s` : `${time / 60}m`}
                         </button>
                     ))
                 ) : (
@@ -64,8 +64,8 @@ const GameSettings = ({
                             onClick={() => setWordCount(count)}
                             disabled={!isCreator}
                             className={`px-3 py-1.5 text-sm rounded-lg transition-all ${wordCount === count
-                                    ? 'bg-green-500/20 text-green-500'
-                                    : 'text-gray-500 hover:text-gray-300'
+                                ? 'bg-green-500/20 text-green-500'
+                                : 'text-gray-500 hover:text-gray-300'
                                 } ${!isCreator ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             {count}

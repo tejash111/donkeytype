@@ -19,7 +19,8 @@ export const SocketProvider = ({ children }) => {
 
     useEffect(() => {
         // Initialize socket connection
-        const socketInstance = io('http://localhost:4000', {
+        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:4000';
+        const socketInstance = io(socketUrl, {
             transports: ['websocket'],
             autoConnect: true,
         });
