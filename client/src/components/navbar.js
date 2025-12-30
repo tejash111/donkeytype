@@ -72,7 +72,7 @@ export function CustomNavbar() {
                         <NavbarLogo />
                         <div className="flex items-center gap-3">
                             <a
-                                href="https://github.com"
+                                href="https://github.com/tejash111/donkeytype"
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
