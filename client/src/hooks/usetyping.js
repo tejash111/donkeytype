@@ -15,8 +15,8 @@ const useTyping = (enabled, words = "") => {
     const [cursor, setCursor] = useState(0)
     const [typed, setTyped] = useState("")
     const totalTyped = useRef(0)
-    const totalKeystrokes = useRef(0) // All keystrokes made (not counting backspace)
-    const totalErrors = useRef(0) // All errors made (even if corrected)
+    const totalKeystrokes = useRef(0) 
+    const totalErrors = useRef(0) 
 
     const clearTyped = React.useCallback(() => {
         setTyped("");
@@ -47,7 +47,7 @@ const useTyping = (enabled, words = "") => {
                 case " ":
                     setTyped((prev) => {
                         const newTyped = prev.concat(" ");
-                        // Check if this keystroke is correct
+                       
                         const expectedChar = words[prev.length];
                         totalKeystrokes.current += 1;
                         if (expectedChar !== " ") {
@@ -59,11 +59,11 @@ const useTyping = (enabled, words = "") => {
                     totalTyped.current += 1;
                     break;
                 default:
-                    // Allow alphanumeric characters and hyphens
+                 
                     if (key.length === 1 && /^[a-zA-Z0-9-]$/.test(key)) {
                         setTyped((prev) => {
                             const newTyped = prev.concat(key);
-                            // Check if this keystroke is correct
+                        
                             const expectedChar = words[prev.length];
                             totalKeystrokes.current += 1;
                             if (expectedChar !== key) {

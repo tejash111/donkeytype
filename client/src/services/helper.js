@@ -23,15 +23,12 @@ export const calculateAccuracyPercentage = (errors, total) => {
   return 0;
 };
 
-// Net WPM = (correct characters / 5) / minutes
-// This is the standard WPM used by Monkeytype
+
 export const calculateWordsPerMinute = (characters, timeInSeconds, errors = 0) => {
   if (timeInSeconds <= 0) {
     return 0;
   }
 
-  // Standard: 1 word = 5 characters
-  // Net WPM subtracts errors to give accurate speed
   const correctChars = Math.max(0, characters - errors);
   const words = correctChars / 5;
   const minutes = timeInSeconds / 60;
@@ -39,8 +36,7 @@ export const calculateWordsPerMinute = (characters, timeInSeconds, errors = 0) =
   return Math.round(words / minutes);
 };
 
-// Raw/Gross WPM = (all characters / 5) / minutes
-// This shows total typing speed including errors
+
 export const calculateRawWpm = (characters, timeInSeconds) => {
   if (timeInSeconds <= 0) {
     return 0;

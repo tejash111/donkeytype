@@ -11,9 +11,9 @@ const RestartButton = ({onRestart:handleRestart}) => {
 
   useEffect(() => {
     const handleKeyPress = (event) => {
-      // Check for Enter or Tab key
+    
       if (event.key === "Enter" || event.key === "Tab") {
-        event.preventDefault(); // Prevent default tab behavior
+        event.preventDefault(); 
         handleRestart();
       }
     };

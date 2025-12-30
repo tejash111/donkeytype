@@ -21,10 +21,10 @@ const MultiplayerPage = () => {
     const [roomId, setRoomId] = useState('');
     const [username, setUsername] = useState('');
     const [inRoom, setInRoom] = useState(false);
-    const [gameState, setGameState] = useState('waiting'); // waiting, playing, finished
+    const [gameState, setGameState] = useState('waiting');
     const [words, setWords] = useState('');
     const [players, setPlayers] = useState([]);
-    const playersRef = React.useRef(players); // Ref to track players without re-triggering effects
+    const playersRef = React.useRef(players);
 
     useEffect(() => {
         playersRef.current = players;
@@ -37,10 +37,9 @@ const MultiplayerPage = () => {
     const [timeLeft, setTimeLeft] = useState(null);
     const [roomCreator, setRoomCreator] = useState(null);
     const [chatMessages, setChatMessages] = useState([]);
-    const [gameMode, setGameMode] = useState('time'); // 'time' or 'words'
-    const [wpmHistory, setWpmHistory] = useState({}); // { [playerId]: [{ time: '1s', wpm: 10, raw: 10 }] }
+    const [gameMode, setGameMode] = useState('time');
+    const [wpmHistory, setWpmHistory] = useState({});
 
-    // Set myId whenever socket changes
     useEffect(() => {
         if (socket?.id) {
             setMyId(socket.id);
@@ -87,7 +86,7 @@ const MultiplayerPage = () => {
             if (serverWordCount !== undefined) setWordCount(serverWordCount);
             if (serverGameMode !== undefined) setGameMode(serverGameMode);
             setTimeLeft(serverTimeLimit !== undefined ? serverTimeLimit : timeLimit);
-            setWpmHistory({}); // Reset history
+            setWpmHistory({});
             clearTyped();
             resetTotalTyped();
         });
@@ -124,12 +123,12 @@ const MultiplayerPage = () => {
         };
     }, [socket, clearTyped, resetTotalTyped]);
 
-    // Timer countdown
+
     useEffect(() => {
         if (gameState !== 'playing' || timeLeft === null || !socket) return;
 
         if (timeLeft <= 0) {
-            // Time's up - emit event to server
+
             socket.emit('time-up', { roomId });
             return;
         }
@@ -150,7 +149,7 @@ const MultiplayerPage = () => {
         const elapsedTime = (Date.now() - startTime) / 1000; // seconds
         const progress = (cursor / words.length) * 100;
 
-        // Use totalErrors for accuracy and WPM calculation like solo mode
+
         const accuracy = calculateAccuracyPercentage(totalErrors, totalTyped);
         const wpm = calculateWordsPerMinute(totalTyped, Math.max(1, elapsedTime), totalErrors);
         const finished = cursor >= words.length;
@@ -163,7 +162,7 @@ const MultiplayerPage = () => {
             finished,
         });
 
-        // When words are finished, generate new ones (don't end the game)
+
         if (finished && gameState === 'playing') {
             const newWords = generateRandomWords(wordCount);
             setWords(newWords);
@@ -425,8 +424,8 @@ const MultiplayerPage = () => {
                 </div>
 
                 {/* Game Settings / Timer - Centered and Narrow */}
-                {gameState === 'waiting' && (
-                    <div className="flex justify-center mb-4">
+                <div className="flex justify-center mb-4 min-h-[68px] items-center">
+                    {gameState === 'waiting' && (
                         <div className="bg-[#070606] rounded-xl px-6 py-3 inline-flex">
                             <GameSettings
                                 timeLimit={timeLimit}
@@ -453,13 +452,13 @@ const MultiplayerPage = () => {
                                 isCreator={myId === roomCreator}
                             />
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
 
                 {/* Typing Area when playing - Full Width */}
                 {gameState === 'playing' && (
                     <div className="mb-6">
-                        <div className="bg-[#070606] rounded-xl p-4 mb-4 flex justify-center">
+                        <div className="bg-[#070606] rounded-xl p-4 mb-4 flex justify-center min-h-[100px] items-center">
                             <div className="text-center">
                                 <div className="text-4xl font-bold text-green-500">{timeLeft}</div>
                                 <div className="text-gray-500 text-xs">seconds left</div>

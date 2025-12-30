@@ -75,7 +75,7 @@ io.on("connection", (socket) => {
       players: Array.from(room.players.values()),
       gameState: room.gameState,
       words: room.words,
-      creator: room.creator, // Send creator ID to client
+      creator: room.creator, 
       timeLimit: room.timeLimit,
       wordCount: room.wordCount,
       gameMode: room.gameMode,
@@ -170,7 +170,7 @@ io.on("connection", (socket) => {
     const room = rooms.get(roomId);
     if (!room) return;
 
-    // End the game
+   
     room.gameState = "finished";
 
     io.to(roomId).emit("game-finished", {
@@ -209,17 +209,16 @@ io.on("connection", (socket) => {
     const room = rooms.get(roomId);
     if (!room) return;
 
-    // Only creator can update settings
+    
     if (socket.id !== room.creator) {
       return;
     }
 
-    // Update room settings
     if (timeLimit !== undefined) room.timeLimit = timeLimit;
     if (wordCount !== undefined) room.wordCount = wordCount;
     if (gameMode !== undefined) room.gameMode = gameMode;
 
-    // Broadcast to all players in room
+
     io.to(roomId).emit("settings-updated", {
       timeLimit: room.timeLimit,
       wordCount: room.wordCount,
@@ -227,7 +226,7 @@ io.on("connection", (socket) => {
     });
   });
 
-  // Chat message handler
+ 
   socket.on("chat-message", (data) => {
     if (!data || !data.roomId || !data.message) {
       return;
@@ -237,10 +236,10 @@ io.on("connection", (socket) => {
     const room = rooms.get(roomId);
     if (!room || !room.players.has(socket.id)) return;
 
-    // Broadcast message to all players in the room
+ 
     io.to(roomId).emit("new-chat-message", {
       username: username || room.players.get(socket.id).username,
-      message: message.trim().substring(0, 200), // Limit message length
+      message: message.trim().substring(0, 200), 
       timestamp: Date.now(),
     });
   });
@@ -293,4 +292,4 @@ io.on("connection", (socket) => {
 });
 
 const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => console.log(`✅ Socket.IO server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Socket.IO server running on port ${PORT}`));

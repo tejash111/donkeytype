@@ -4,14 +4,14 @@ const useCountdownTimer = (seconds) => {
     const [timeLeft, setTimeLeft] = useState(seconds)
     const intervalRef = useRef(null)
 
-    // Update timeLeft when seconds prop changes
+  
     useEffect(() => {
         setTimeLeft(seconds);
     }, [seconds]);
 
     const startCountdown = () => {
         console.log("starting countdown..");
-        // Clear any existing interval first
+   
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
         }

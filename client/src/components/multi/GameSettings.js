@@ -57,7 +57,7 @@ const GameSettings = ({
                         </button>
                     ))
                 ) : (
-                    // Word count options
+                  
                     [10, 25, 50, 100].map((count) => (
                         <button
                             key={count}
