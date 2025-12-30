@@ -101,6 +101,26 @@ const Solo = () => {
     }
   }, [wordsFinished, state, mode, typed, words, wordsTypedCount, wordCount, allWordsTyped, clearTyped, updateWords])
 
+  // Check if target word count reached while typing
+  useEffect(() => {
+    if (mode === 'words' && state === 'run') {
+      const currentTypedWords = typed.trim().split(/\s+/).filter(w => w.length > 0);
+      const totalWords = wordsTypedCount + currentTypedWords.length;
+      
+      if (totalWords >= wordCount) {
+        // Update final state
+        const completedWords = typed.trim().split(/\s+/).filter(w => w.length > 0);
+        const updatedAllWords = [...allWordsTyped, ...completedWords];
+        setAllWordsTyped(updatedAllWords);
+        setWordsTypedCount(updatedAllWords.length);
+        
+        const currentErrors = countErrors(typed, words.substring(0, typed.length));
+        setErrors(currentErrors);
+        setState("finish");
+      }
+    }
+  }, [typed, mode, state, wordCount, wordsTypedCount, allWordsTyped, words])
+
 
   if (state === "finish") {
     return (

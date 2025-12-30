@@ -6,7 +6,8 @@ const keyboardCodeAllowed = (code) => {
         code.startsWith("Key") ||
         code.startsWith("Digit") ||
         code === "Backspace" ||
-        code === "Space"
+        code === "Space" ||
+        code === "Minus"
     );
 }
 
@@ -58,7 +59,8 @@ const useTyping = (enabled, words = "") => {
                     totalTyped.current += 1;
                     break;
                 default:
-                    if (key.length === 1) { // Only single characters
+                    // Allow alphanumeric characters and hyphens
+                    if (key.length === 1 && /^[a-zA-Z0-9-]$/.test(key)) {
                         setTyped((prev) => {
                             const newTyped = prev.concat(key);
                             // Check if this keystroke is correct
